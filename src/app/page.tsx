@@ -1,9 +1,3 @@
-import { QuillEditor } from "@/components";
-
 export default function Home() {
-  return (
-    <main>
-      <QuillEditor />
-    </main>
-  );
+  return <main></main>;
 }
