@@ -1,3 +1,3 @@
-import { QuillEditor } from "./Quill/react-quill";
+import { TextEditor } from "./TextEditor/TextEditor";
 
-export { QuillEditor };
+export { TextEditor };

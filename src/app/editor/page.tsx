@@ -1,9 +1,9 @@
-import { QuillEditor } from "@/components";
+import { TextEditor } from "@/components";
 
 export default function Editor() {
   return (
-    <main>
-      <QuillEditor />
-    </main>
+    <div>
+      <TextEditor />
+    </div>
   );
 }
