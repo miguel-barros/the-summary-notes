@@ -1,8 +1,10 @@
 "use client";
 import "suneditor/dist/css/suneditor.min.css";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import htmlDocx from "html-docx-js/dist/html-docx";
+import { useSearchParams } from "next/navigation";
+import { editorGetRequest, editorUpdateRequest } from "@/requests/editor";
 
 const SunEditor = dynamic(() => import("suneditor-react"), {
   ssr: false,
@@ -10,6 +12,16 @@ const SunEditor = dynamic(() => import("suneditor-react"), {
 
 export function TextEditor() {
   const [editor, setEditor] = useState<EditorInterface | null>(null);
+  const editorID = useSearchParams().get("id");
+  const hasFetched = useRef(false);
+
+  const handleFetchEditor = useCallback(async () => {
+    if (!editorID) return;
+    const editors = await editorGetRequest(editorID);
+    if (editors) {
+      setEditor(editors);
+    }
+  }, [editorID]);
 
   const handleExport = () => {
     if (!editor) return;
@@ -21,7 +33,33 @@ export function TextEditor() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    a.remove();
   };
+
+  const handleSave = async (content: string) => {
+    if (!editor) return;
+    const res = await editorUpdateRequest(editor.id, {
+      content,
+      updatedAt: new Date().toISOString(),
+    });
+    if (res) console.log("Saved");
+  };
+
+  const handleAutoSave = (content: string) => {
+    if (!editor) return;
+    if (editor.content === content) return;
+    const saveInterval = setTimeout(() => {
+      handleSave(content);
+    }, 2500);
+    return () => clearInterval(saveInterval);
+  };
+
+  useEffect(() => {
+    if (!hasFetched.current && editorID) {
+      hasFetched.current = true;
+      handleFetchEditor();
+    }
+  }, [handleFetchEditor, editorID]);
 
   return (
     <div>
@@ -48,16 +86,14 @@ export function TextEditor() {
             ["align", "horizontalRule", "list", "table"],
             ["link", "image", "video"],
             ["undo", "redo"],
-            ["save"],
           ],
         }}
         setContents={editor?.content}
-        onSave={(content) => {
-          console.log(content);
-        }}
+        onSave={handleSave}
         onChange={(content) => {
           if (!editor) return;
           setEditor({ ...editor, content });
+          handleAutoSave(content);
         }}
       />
       <button onClick={handleExport}>Save to desktop</button>

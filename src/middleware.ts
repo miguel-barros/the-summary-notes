@@ -7,6 +7,8 @@ const middlewareSelector = (path: string) => {
       return [CheckAuthMiddleware];
     case "/login":
       return [CheckAuthMiddleware];
+    case "/dashboard":
+      return [CheckAuthMiddleware];
     default:
       return [];
   }
