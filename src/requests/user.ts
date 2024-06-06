@@ -8,3 +8,12 @@ export const loginRequest = async (email: string, password: string) => {
     console.error(error);
   }
 };
+
+export const currentUserRequest = async () => {
+  try {
+    const res = await api_client.get("/users/me");
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+};

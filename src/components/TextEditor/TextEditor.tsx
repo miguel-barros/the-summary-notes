@@ -9,10 +9,11 @@ const SunEditor = dynamic(() => import("suneditor-react"), {
 });
 
 export function TextEditor() {
-  const [content, setContent] = useState("");
+  const [editor, setEditor] = useState<EditorInterface | null>(null);
 
   const handleExport = () => {
-    const blob = htmlDocx.asBlob(content);
+    if (!editor) return;
+    const blob = htmlDocx.asBlob(editor.content);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -50,8 +51,14 @@ export function TextEditor() {
             ["save"],
           ],
         }}
-        onSave={(content) => console.log(content)}
-        onChange={setContent}
+        setContents={editor?.content}
+        onSave={(content) => {
+          console.log(content);
+        }}
+        onChange={(content) => {
+          if (!editor) return;
+          setEditor({ ...editor, content });
+        }}
       />
       <button onClick={handleExport}>Save to desktop</button>
     </div>
