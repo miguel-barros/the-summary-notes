@@ -23,15 +23,18 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-4 items-center">
-      Editores
-      <div className="flex flex-col gap-3 w-6/12">
+      <h1 className="text-2xl">My summaries</h1>
+      <div className="flex flex-col gap-3">
         {editors?.map((editor) => (
           <div
             key={editor.id}
-            className="flex justify-center items-center flex-col p-2 rounded-md border-red-500 bg-red-500"
+            className="flex justify-center flex-col p-2 rounded-md"
           >
-            <p>
-              Ultima edição:{" "}
+            <p className="text-lg">
+              <strong>Summary title:</strong> {editor.title}
+            </p>
+            <p className="text-lg">
+              <strong>Last updated:</strong>{" "}
               {new Date(editor.updatedAt).toLocaleDateString("pt-BR", {
                 year: "numeric",
                 month: "long",
@@ -41,11 +44,12 @@ export default function Dashboard() {
               })}
             </p>
             <button
+              className="text-lg"
               onClick={() => {
                 router.push(`/editor?id=${editor.id}`);
               }}
             >
-              Editar
+              View
             </button>
           </div>
         ))}

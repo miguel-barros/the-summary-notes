@@ -1,7 +1,6 @@
 import api_client from "./api_client";
 
-type EditorUpdateRequest = Pick<EditorInterface, "content"> &
-  Pick<EditorInterface, "updatedAt">;
+type EditorUpdateRequest = Partial<EditorInterface>;
 
 export const editorUpdateRequest = async (
   id: string,

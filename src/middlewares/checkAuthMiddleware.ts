@@ -39,7 +39,7 @@ const handleLoginPath = async (
     }
   );
 
-  if (apiResponse.status === 401) {
+  if (apiResponse.status === 401 || apiResponse.status === 404) {
     return redirectToLogin(request, response);
   }
 

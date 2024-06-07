@@ -13,3 +13,7 @@
   border-collapse: collapse;
   border-spacing: 0;
 }
+
+.sun-editor {
+  border: 0 !important;
+}

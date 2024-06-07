@@ -11,46 +11,68 @@ const SunEditor = dynamic(() => import("suneditor-react"), {
 });
 
 export function TextEditor() {
-  const [editor, setEditor] = useState<EditorInterface | null>(null);
+  const [editor, setEditor] = useState<EditorInterface>({
+    id: "",
+    content: "",
+    title: "",
+    updatedAt: "",
+    createdAt: "",
+    userId: "",
+  });
+  const [readOnly, setReadOnly] = useState(true);
   const editorID = useSearchParams().get("id");
   const hasFetched = useRef(false);
 
   const handleFetchEditor = useCallback(async () => {
     if (!editorID) return;
-    const editors = await editorGetRequest(editorID);
-    if (editors) {
-      setEditor(editors);
+    const editor = await editorGetRequest(editorID);
+    if (editor) {
+      setEditor(editor);
     }
   }, [editorID]);
 
   const handleExport = () => {
     if (!editor) return;
-    const blob = htmlDocx.asBlob(editor.content);
+    const blob = htmlDocx.asBlob(`
+      <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+          </head>
+        <body>
+          ${editor.content}
+        </body>
+      </html>
+    `);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "document.docx";
+    a.download = `${editor.title}.docx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    a.remove();
+    URL.revokeObjectURL(url);
   };
 
-  const handleSave = async (content: string) => {
-    if (!editor) return;
-    const res = await editorUpdateRequest(editor.id, {
-      content,
-      updatedAt: new Date().toISOString(),
-    });
-    if (res) console.log("Saved");
-  };
+  const handleSave = useCallback(
+    async (content: string, title: string) => {
+      if (!editor || !content || !title) return;
+      const res = await editorUpdateRequest(editor.id, {
+        content,
+        updatedAt: new Date().toISOString(),
+        title,
+      });
+      if (res) console.log("Auto saved");
+    },
+    [editor]
+  );
 
   const handleAutoSave = (content: string) => {
-    if (!editor) return;
+    if (!editor || !editor.title) return;
     if (editor.content === content) return;
     const saveInterval = setTimeout(() => {
-      handleSave(content);
-    }, 2500);
+      handleSave(content, editor.title);
+    }, 1500);
     return () => clearInterval(saveInterval);
   };
 
@@ -59,11 +81,40 @@ export function TextEditor() {
       hasFetched.current = true;
       handleFetchEditor();
     }
+    return () => {
+      hasFetched.current = false;
+    };
   }, [handleFetchEditor, editorID]);
 
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      <button
+        className="self-end"
+        onClick={() => {
+          setReadOnly(!readOnly);
+        }}
+      >
+        {readOnly ? "Edit" : "Read only"}
+      </button>
+      <input
+        type="text"
+        value={editor.title}
+        disabled={readOnly}
+        onChange={(e) => {
+          if (!editor || readOnly) return;
+          setEditor({ ...editor, title: e.target.value });
+        }}
+        onBlur={() => {
+          if (!editor || readOnly) return;
+          handleSave(editor.content, editor.title);
+        }}
+        placeholder="Summary title"
+        className="self-center text-xl"
+      />
       <SunEditor
+        setDefaultStyle={
+          readOnly ? "border: 0; padding: 0;" : "border: 1px solid #dadada;"
+        }
         setOptions={{
           mode: "classic",
           font: ["Arial"],
@@ -88,8 +139,11 @@ export function TextEditor() {
             ["undo", "redo"],
           ],
         }}
-        setContents={editor?.content}
-        onSave={handleSave}
+        readOnly={readOnly}
+        setContents={editor.content}
+        disable={readOnly}
+        disableToolbar={readOnly}
+        hideToolbar={readOnly}
         onChange={(content) => {
           if (!editor) return;
           setEditor({ ...editor, content });
